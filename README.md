@@ -1,1 +1,1 @@
-This is a data structures project
+This is a documentation / description file
