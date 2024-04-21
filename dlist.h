@@ -30,7 +30,6 @@ int deleteFirst(DList *pdl, doubleLinkedEntry pe[]);
 void traverse(DList *pdl, void (*pf)(doubleLinkedEntry e[]));
 
 /* Additional functions */
-void printNodeInfo(doubleLinkedEntry e[]);
 void printNodeEntry(doubleLinkedEntry e[]);
 
 /* Project-related functions: */

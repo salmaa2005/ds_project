@@ -17,14 +17,17 @@ int DListEmpty(DList *pdl)
 }
 
 // returns -1 if allocation failed
-// returns 0 when key is invalid
+// returns 0 when key is invalid (out of bounds)
 // returns 1 if successful
-int insert(DList *pdl, Info info)
+int insert(DList *pdl, doubleLinkedEntry e[], int pos)
 {
 	Node *pn = (Node *)malloc(sizeof(Node));
-	if (!pn || info.Key < 1)
+	if (!pn)
+		return -1;
+	if (pos < 0 || pos > pdl->size + 1)
 		return 0;
-	pn->info = info;
+
+	strcpy(pn->entry, e);
 	if (!pdl->head)
 	{
 		pn->next = NULL;
@@ -34,10 +37,16 @@ int insert(DList *pdl, Info info)
 	}
 	else
 	{
+		int ctr = 1;
 		Node *trav = pdl->head;
-		while (info.Key > trav->info.Key && trav->next)
+
+		while (pos > ctr && trav->next)
+		{
+			ctr++;
 			trav = trav->next;
-		if (info.Key > trav->info.Key && !trav->next)
+		}
+
+		if (pos > ctr && !trav->next)
 		{
 			pn->next = NULL;
 			pn->prev = trav;
@@ -61,18 +70,21 @@ int insert(DList *pdl, Info info)
 // returns -1 if list is empty
 // returns 0 if position is out of bounds
 // returns 1 if element is deleted successfully
-int deleteFromDList(DList *pdl, int pos, doubleLinkedEntry pe[])
+int deleteFromDList(DList *pdl, doubleLinkedEntry pe[], int pos)
 {
-	if (pdl->head == NULL)
+	if (!pdl->head)
 		return -1;
-	if (pos < 0 || pos > pdl->tail->info.Key || pos < pdl->head->info.Key)
+	if (pos < 1 || pos > pdl->size)
 		return 0;
 	Node *trav = pdl->head;
-	for (int i = 0; pe[i] != '\0'; i++)
-		pe[i] = trav->info.entry[i];
-	trav = pdl->head;
-	while (trav->info.Key < pos)
+
+	int ctr = 1;
+	while (ctr < pos)
+	{
+		ctr++;
 		trav = trav->next;
+	}
+	strcpy(pe, trav->entry);
 	if (!trav->prev)
 	{
 		pdl->head = trav->next;
@@ -100,9 +112,8 @@ int deleteFirst(DList *pdl, doubleLinkedEntry pe[])
 	if (!pdl->head)
 		return -1;
 	Node *trav = pdl->head;
-	for (int i = 0; trav->info.entry[i] != '\0'; i++)
-		pe[i] = trav->info.entry[i];
-	trav = pdl->head;
+	strcpy(pe, trav->entry);
+
 	if (pdl->size == 1)
 	{
 		pdl->head = NULL;
@@ -117,29 +128,23 @@ int deleteFirst(DList *pdl, doubleLinkedEntry pe[])
 	pdl->size--;
 	return 1;
 }
-void traverse(DList *pdl, void (*pf)(Info))
+void traverse(DList *pdl, void (*pf)(doubleLinkedEntry e[]))
 {
 	Node *trav = pdl->head;
 	while (trav)
 	{
-		(*pf)(trav->info);
+		(*pf)(trav->entry);
 		trav = trav->next;
 	}
 }
 
-/* Additional functions: */
-void printNodeInfo(Info info)
+/**************** Additional functions: ****************/
+void printNodeEntry(doubleLinkedEntry e[])
 {
-	printf("Key: %d\n", info.Key);
-	printf("Entry: %s\n", info.entry);
+	printf("Entry: %s\n", e);
 }
 
-void printNodeEntry(Info info)
-{
-	printf("Entry: %s\n", info.entry);
-}
-
-/* Project-related functions: */
+/**************** Project-related functions: ****************/
 
 // returns 0 if allocation failed
 // returns 1 if successful
@@ -149,13 +154,13 @@ int addLineToDList(DList *pdl, char *line)
 	Node *pn = (Node *)malloc(sizeof(Node));
 	if (!pn)
 		return 0;
+	strcpy(pn->entry, line);
 	if (!pdl->head)
 	{
 		pdl->head = pn;
 		pdl->tail = pn;
 		pn->next = NULL;
 		pn->prev = NULL;
-		pn->info.Key = 1;
 	}
 	else
 	{
@@ -163,7 +168,6 @@ int addLineToDList(DList *pdl, char *line)
 		pn->next = NULL;
 		pdl->tail->next = pn;
 		pdl->tail = pn;
-		pn->info.Key = pdl->tail->info.Key + 1;
 	}
 	pdl->size++;
 	return 1;
@@ -202,7 +206,7 @@ int writeToFile(DList *pdl, char *fileName)
 	Node *trav = pdl->head;
 	while (trav)
 	{
-		fprintf(fp, "%s\n", trav->info.entry); // writes the entry to the file
+		fprintf(fp, "%s\n", trav->entry); // writes the entry to the file
 		trav = trav->next;
 	}
 	fclose(fp);
